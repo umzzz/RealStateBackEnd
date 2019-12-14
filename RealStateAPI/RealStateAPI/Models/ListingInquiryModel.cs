@@ -17,7 +17,6 @@ namespace RealStateAPI.Models
 
     public class Inquiry
     {
-        [BsonId]
         [BsonRepresentation(MongoDB.Bson.BsonType.ObjectId)]
         public string UserID { get; set; }
         public string EmailAddress { get; set; }
