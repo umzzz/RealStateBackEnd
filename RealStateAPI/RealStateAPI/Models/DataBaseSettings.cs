@@ -23,7 +23,7 @@ namespace RealStateAPI.Models
 
 
 
-    public class ListingInquiryDataBaseModel : IListingInquiryDataBaseModel
+    public class ListingInquiryDataBaseSetting : IListingInquiryDataBaseSetting
     {
         public string ListingInquiryCollectionName { get; set; }
         public string ConnectionString { get; set; }

@@ -17,6 +17,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using RealStateAPI.Models;
+using RealStateAPI.Service;
 
 namespace RealStateAPI
 {
@@ -84,10 +85,11 @@ namespace RealStateAPI
 
             services.AddSingleton<IListingDataBaseSettings>(sp => sp.GetRequiredService<IOptions<ListingDataBaseSettings>>().Value);
 
-            services.Configure<ListingInquiryDataBaseModel>(Configuration.GetSection(nameof(ListingInquiryDataBaseModel)));
+            services.Configure<ListingInquiryDataBaseSetting>(Configuration.GetSection(nameof(ListingInquiryDataBaseSetting)));
 
-            services.AddSingleton<IListingInquiryDataBaseModel>(sp => sp.GetRequiredService<IOptions<ListingInquiryDataBaseModel>>().Value);
+            services.AddSingleton<IListingInquiryDataBaseSetting>(sp => sp.GetRequiredService<IOptions<ListingInquiryDataBaseSetting>>().Value);
 
+            services.AddSingleton<ListingService>();
 
             services.AddControllers();
         }

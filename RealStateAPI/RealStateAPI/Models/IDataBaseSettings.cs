@@ -12,7 +12,7 @@
         string DatabaseName { get; set; }
         string ListingCollectionName { get; set; }
     }
-    public interface IListingInquiryDataBaseModel
+    public interface IListingInquiryDataBaseSetting
     {
         string ConnectionString { get; set; }
         string DatabaseName { get; set; }

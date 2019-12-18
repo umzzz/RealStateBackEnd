@@ -1,16 +1,18 @@
 ﻿using MongoDB.Bson.Serialization.Attributes;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
 
 namespace RealStateAPI.Models
 {
-    public class ListingModel
+    public class Listing
     {
         [BsonId]
         [BsonRepresentation(MongoDB.Bson.BsonType.ObjectId)]
         public string Id { get; set; }
+        [Required]
         public string ListingID { get; set; }
         public string Description { get; set; }
         public Location Location { get; set; }
