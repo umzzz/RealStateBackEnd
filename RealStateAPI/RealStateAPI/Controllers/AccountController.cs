@@ -104,7 +104,7 @@ namespace RealStateAPI.Controllers
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         [HttpGet]
         [Route("GetUsers")]
-        [Authorize(Roles = Role.User)]
+        [Authorize(Roles = Role.Admin)]
         public async Task<ActionResult> UserData()
         {
             var user = await _userManager.GetUserAsync(User);
