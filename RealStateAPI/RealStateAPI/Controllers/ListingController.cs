@@ -22,7 +22,7 @@ namespace RealStateAPI.Controllers
 
         [Route("{listingId:length(24)}")]
         [HttpGet]
-        public async Task<ActionResult<Listing>> GetListing(string listingId)
+        public async Task<ActionResult<ListingModel>> GetListing(string listingId)
         {
             var listing = await _listingService.GetByID(listingId);
             if (listing == null)
@@ -36,14 +36,14 @@ namespace RealStateAPI.Controllers
             }
         }
         [HttpPost]
-        public async Task<ActionResult<string>> Post(Listing L)
+        public async Task<ActionResult<string>> Post(ListingModel L)
         {
             //TODO : Validate Model 
             //https://docs.microsoft.com/en-us/aspnet/core/mvc/models/validation?view=aspnetcore-3.1
 
             try
             {
-                var listing = _listingService.GetByListingID(L.ListingID);
+                var listing = await _listingService.GetByListingID(L.ListingID);
                 if(listing == null)
                 {
                     var id = await _listingService.Post(L);

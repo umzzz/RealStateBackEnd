@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace RealStateAPI.Models
 {
-    public class Listing
+    public class ListingModel
     {
         [BsonId]
         [BsonRepresentation(MongoDB.Bson.BsonType.ObjectId)]
@@ -19,11 +19,11 @@ namespace RealStateAPI.Models
         public PropertyType PropertyType { get; set; }
         public string PropertySubType { get; set; }
         public double Price { get; set; }
-        public List<Dictionary<string,string>> BedProperties { get; set; }
-        public List<Dictionary<string, string>> BathProperties { get; set; }
+        public Dictionary<string, string> BedProperties { get; set; }
+        public Dictionary<string, string> BathProperties { get; set; }
         public Dictionary<string, List<PropertyFeatures>> PropetyProperties { get; set; }
         public int Buildyear { get; set; }
-        public Dictionary<PictureType,string> Pictures { get; set; }
+        public List<Pictures> Pictures { get; set; }
         public string Fees { get; set; }
     }
 
@@ -31,6 +31,11 @@ namespace RealStateAPI.Models
     {
         Comercial,
         resedential
+    }
+    public class Pictures
+    {
+        public PictureType TypeID { get; set; }
+        public string url { get; set; }
     }
     public enum PictureType
     {
@@ -40,14 +45,14 @@ namespace RealStateAPI.Models
 
     public class Location
     {
-        public string Latitude { get; set; }
-        public string Longitude { get; set; }
+        public string Latitude { get; set; } = "";
+        public string Longitude { get; set; } = "";
         public string Address { get; set; }
     }
 
     public class PropertyFeatures
     {
-        public Dictionary<string,string> PropertyFeature { get; set; }
+        public Dictionary<string, string> PropertyFeature { get; set; }
     }
 
 }
