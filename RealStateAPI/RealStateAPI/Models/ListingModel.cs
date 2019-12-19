@@ -19,8 +19,8 @@ namespace RealStateAPI.Models
         public PropertyType PropertyType { get; set; }
         public string PropertySubType { get; set; }
         public double Price { get; set; }
-        public Dictionary<string, string> BedProperties { get; set; }
-        public Dictionary<string, string> BathProperties { get; set; }
+        public room BedProperties { get; set; }
+        public room BathProperties { get; set; }
         public Dictionary<string, List<PropertyFeatures>> PropetyProperties { get; set; }
         public int Buildyear { get; set; }
         public List<Pictures> Pictures { get; set; }
@@ -43,6 +43,11 @@ namespace RealStateAPI.Models
         NonFeatured
     }
 
+    public class room
+    {
+        public int NumberOfRooms { get; set; }
+        public Dictionary<string, string> RoomProperties { get; set; }
+    }
     public class Location
     {
         public string Latitude { get; set; } = "";
