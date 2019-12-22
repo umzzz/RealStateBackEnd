@@ -60,4 +60,18 @@ namespace RealStateAPI.Models
         public Dictionary<string, string> PropertyFeature { get; set; }
     }
 
+    public class ListingFilter
+    {
+        public FilterKey FilterName { get; set; }
+        public Dictionary<string, string> FilterValue { get; set; }
+    }
+
+    public enum FilterKey 
+    {
+        Price,
+        NumberOfBedRooms,
+        NumberOfBathRooms
+    }
+
+
 }

@@ -4,6 +4,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using MongoDB.Bson;
+using MongoDB.Driver;
 using RealStateAPI.Models;
 using RealStateAPI.Service;
 
@@ -24,7 +26,7 @@ namespace RealStateAPI.Controllers
         [HttpGet]
         public async Task<ActionResult<ListingModel>> GetListing(string listingId)
         {
-            var listing = await _listingService.GetByID(listingId);
+            var listing = await _listingService.GetByListingID(listingId);
             if (listing == null)
             {
                 return NotFound();
@@ -63,6 +65,74 @@ namespace RealStateAPI.Controllers
                 return Content(ex.Message);
 
             }
+        }
+        [Route("filter")]
+        [HttpPost]
+        public async Task<ActionResult<List<ListingModel>>> Search(List<ListingFilter> filters)
+        {
+            var builder = Builders<ListingModel>.Filter;
+            FilterDefinition<ListingModel> Monogfilter = FilterDefinition<ListingModel>.Empty;
+            foreach (var filter in filters)
+            {
+
+                switch (filter.FilterName)
+                {
+                    case FilterKey.Price:
+
+                        foreach (var item in filter.FilterValue)
+                        {
+                            var qty = Convert.ToDouble(item.Value);
+                            if (item.Key.Equals("gt"))
+                            {
+
+                                Monogfilter &= builder.Gt(ListingModel => ListingModel.Price, qty);
+                            }
+                            if (item.Key.Equals("lt"))
+                            {
+                                Monogfilter &= builder.Lt(ListingModel => ListingModel.Price, qty);
+                            }
+                        }
+                        break;
+                    case FilterKey.NumberOfBedRooms:
+
+
+                        if (filter.FilterValue.TryGetValue("eq", out var numofrooms))
+                        {
+                            
+                            Monogfilter &= builder.Eq(ListingModel => ListingModel.BedProperties.NumberOfRooms, Convert.ToInt32(numofrooms));
+                            break;
+                        }
+                        foreach (var item in filter.FilterValue)
+                        {
+                          
+                            var qty = Convert.ToInt32(item.Value);
+
+                            if (item.Key.Equals("gt"))
+                            {
+
+                                Monogfilter &= builder.Gt(ListingModel => ListingModel.BedProperties.NumberOfRooms, qty);
+                            }
+                            if (item.Key.Equals("lt"))
+                            {
+                                Monogfilter &= builder.Lt(ListingModel => ListingModel.BedProperties.NumberOfRooms, qty);
+                            }
+
+                        }
+                        break;
+                    default:
+                        Response.StatusCode = 200;
+                        return Content("Please select the correct Filter");
+
+                }
+            }
+            var listing = await _listingService.Search(Monogfilter);
+            if(listing.Count == 0)
+            {
+                Response.StatusCode = 200;
+                return Content("We couldnt find any listings please expand your search");
+            }
+            Response.StatusCode = 200;
+            return listing;
         }
     }
 }

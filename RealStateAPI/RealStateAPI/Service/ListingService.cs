@@ -19,12 +19,6 @@ namespace RealStateAPI.Service
             _listing = dataBase.GetCollection<ListingModel>(listingSettings.ListingCollectionName);
         }
 
-        public async Task<ListingModel> GetByID(string id)
-        {
-            ListingModel l = await _listing.Find(x => x.Id == id).FirstOrDefaultAsync();
-            return l;
-        }
-
         public async Task<ListingModel> GetByListingID(string id)
         {
             ListingModel l = await _listing.Find(x => x.ListingID == id).FirstOrDefaultAsync();
@@ -37,6 +31,16 @@ namespace RealStateAPI.Service
             await _listing.InsertOneAsync(L);
 
             return L.Id;
+        }
+
+        public async Task<List<ListingModel>> Search(FilterDefinition<ListingModel> filter)
+        {
+            if(filter == null)
+            {
+                return new List<ListingModel>();
+            }
+            var listings = await  _listing.FindAsync(filter);
+            return await listings.ToListAsync();
         }
     }
 }
