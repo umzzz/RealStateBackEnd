@@ -119,6 +119,30 @@ namespace RealStateAPI.Controllers
 
                         }
                         break;
+                    case FilterKey.NumberOfBathRooms:
+
+                        if (filter.FilterValue.TryGetValue("eq", out var numofBathrooms))
+                        {
+
+                            Monogfilter &= builder.Eq(ListingModel => ListingModel.BathProperties.NumberOfRooms, Convert.ToInt32(numofBathrooms));
+                            break;
+                        }
+                        foreach (var item in filter.FilterValue)
+                        {
+
+                            var qty = Convert.ToInt32(item.Value);
+
+                            if (item.Key.Equals("gt"))
+                            {
+
+                                Monogfilter &= builder.Gt(ListingModel => ListingModel.BathProperties.NumberOfRooms, qty);
+                            }
+                            if (item.Key.Equals("lt"))
+                            {
+                                Monogfilter &= builder.Lt(ListingModel => ListingModel.BathProperties.NumberOfRooms, qty);
+                            }
+                        }
+                        break;
                     default:
                         Response.StatusCode = 200;
                         return Content("Please select the correct Filter");
