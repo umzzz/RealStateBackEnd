@@ -26,7 +26,7 @@ namespace RealStateAPI.Controllers
         [HttpGet]
         public async Task<ActionResult<ListingModel>> GetListing(string listingId)
         {
-            var listing = await _listingService.GetByListingID(listingId);
+            var listing = await _listingService.GetByID(listingId);
             if (listing == null)
             {
                 return NotFound();
@@ -46,7 +46,7 @@ namespace RealStateAPI.Controllers
             try
             {
                 var listing = await _listingService.GetByListingID(L.ListingID);
-                if(listing == null)
+                if (listing == null)
                 {
                     var id = await _listingService.Post(L);
                     Response.StatusCode = 201;
@@ -57,7 +57,7 @@ namespace RealStateAPI.Controllers
                     Response.StatusCode = 400;
                     return Content("Listing already exsists");
                 }
-            
+
             }
             catch (Exception ex)
             {
@@ -98,13 +98,13 @@ namespace RealStateAPI.Controllers
 
                         if (filter.FilterValue.TryGetValue("eq", out var numofrooms))
                         {
-                            
+
                             Monogfilter &= builder.Eq(ListingModel => ListingModel.BedProperties.NumberOfRooms, Convert.ToInt32(numofrooms));
                             break;
                         }
                         foreach (var item in filter.FilterValue)
                         {
-                          
+
                             var qty = Convert.ToInt32(item.Value);
 
                             if (item.Key.Equals("gt"))
@@ -144,13 +144,12 @@ namespace RealStateAPI.Controllers
                         }
                         break;
                     default:
-                        Response.StatusCode = 200;
+                        Response.StatusCode = 400;
                         return Content("Please select the correct Filter");
-
                 }
             }
             var listing = await _listingService.Search(Monogfilter);
-            if(listing.Count == 0)
+            if (listing.Count == 0)
             {
                 Response.StatusCode = 200;
                 return Content("We couldnt find any listings please expand your search");

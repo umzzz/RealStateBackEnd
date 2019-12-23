@@ -25,7 +25,11 @@ namespace RealStateAPI.Service
             return l;
         }
 
-
+        public async Task<ListingModel> GetByID(string id)
+        {
+            ListingModel l = await _listing.Find(x => x.Id == id).FirstOrDefaultAsync();
+            return l;
+        }
         public async Task<string> Post(ListingModel L)
         {
             await _listing.InsertOneAsync(L);

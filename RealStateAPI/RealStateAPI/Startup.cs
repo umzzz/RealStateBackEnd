@@ -24,6 +24,7 @@ namespace RealStateAPI
     public class Startup
     {
         private string ConnectionString => Configuration.GetConnectionString("DefaultConnection");
+        readonly string MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
@@ -34,6 +35,16 @@ namespace RealStateAPI
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddCors(options =>
+            {
+                options.AddPolicy(MyAllowSpecificOrigins,
+                builder =>
+                {
+                    builder.WithOrigins("http://localhost:3000")
+                                        .AllowAnyHeader()
+                                        .AllowAnyMethod();
+                });
+            });
             services.AddIdentityMongoDbProvider<UserModel>(identity =>
             {
                 identity.Password.RequireDigit = false;
@@ -48,7 +59,7 @@ namespace RealStateAPI
                  mongo.ConnectionString = ConnectionString;
              }
          );
-            
+
             //using DI to get the connection string and regestering a singelton for the life of the application
 
             JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear(); // => remove default claims
@@ -75,9 +86,9 @@ namespace RealStateAPI
                            ClockSkew = TimeSpan.Zero // remove delay of token when expire
                        };
             });
-           
 
-           services.Configure<UserDataBaseSettings>(Configuration.GetSection(nameof(UserDataBaseSettings)));
+
+            services.Configure<UserDataBaseSettings>(Configuration.GetSection(nameof(UserDataBaseSettings)));
 
             services.AddSingleton<IUserDataBaseSettings>(sp => sp.GetRequiredService<IOptions<UserDataBaseSettings>>().Value);
 
@@ -105,6 +116,8 @@ namespace RealStateAPI
             app.UseHttpsRedirection();
 
             app.UseRouting();
+
+            app.UseCors(MyAllowSpecificOrigins);
 
             app.UseAuthorization();
 
