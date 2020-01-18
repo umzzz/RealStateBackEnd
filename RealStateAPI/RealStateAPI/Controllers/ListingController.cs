@@ -68,16 +68,16 @@ namespace RealStateAPI.Controllers
         }
         [Route("filter")]
         [HttpPost]
-        public async Task<ActionResult<List<ListingModel>>> Search(List<ListingFilter> filters)
+        public async Task<ActionResult<List<ListingModel>>> Search(SearchModel search)
         {
             var builder = Builders<ListingModel>.Filter;
             FilterDefinition<ListingModel> Monogfilter = FilterDefinition<ListingModel>.Empty;
-            foreach (var filter in filters)
+            foreach (var filter in search.Filters)
             {
 
                 switch (filter.FilterName)
                 {
-                    case FilterKey.Price:
+                    case "Price" :
 
                         foreach (var item in filter.FilterValue)
                         {
@@ -93,7 +93,7 @@ namespace RealStateAPI.Controllers
                             }
                         }
                         break;
-                    case FilterKey.NumberOfBedRooms:
+                    case "NumberOfBedRooms":
 
 
                         if (filter.FilterValue.TryGetValue("eq", out var numofrooms))
@@ -119,7 +119,7 @@ namespace RealStateAPI.Controllers
 
                         }
                         break;
-                    case FilterKey.NumberOfBathRooms:
+                    case "NumberOfBathRooms":
 
                         if (filter.FilterValue.TryGetValue("eq", out var numofBathrooms))
                         {
@@ -147,6 +147,12 @@ namespace RealStateAPI.Controllers
                         Response.StatusCode = 400;
                         return Content("Please select the correct Filter");
                 }
+            }
+            if(!string.IsNullOrEmpty(search.SearchTerm))
+            {
+                Monogfilter &= builder.Or(builder.Regex(ListingModel => ListingModel.ListingID, new BsonRegularExpression(search.SearchTerm, "i")), 
+                    builder.Regex(ListingModel => ListingModel.Location.Address, new BsonRegularExpression(search.SearchTerm, "i")),
+                    builder.Regex(ListingModel => ListingModel.Description, new BsonRegularExpression(search.SearchTerm, "i")));
             }
             var listing = await _listingService.Search(Monogfilter);
             if (listing.Count == 0)

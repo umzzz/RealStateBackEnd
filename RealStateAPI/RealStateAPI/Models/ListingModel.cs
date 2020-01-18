@@ -21,7 +21,7 @@ namespace RealStateAPI.Models
         public double Price { get; set; }
         public room BedProperties { get; set; }
         public room BathProperties { get; set; }
-        public Dictionary<string, List<PropertyFeatures>> PropetyProperties { get; set; }
+        public Dictionary<string, Dictionary<string, List<string>>> PropetyProperties { get; set; }
         public int Buildyear { get; set; }
         public List<Pictures> Pictures { get; set; }
         public string Fees { get; set; }
@@ -55,23 +55,20 @@ namespace RealStateAPI.Models
         public string Address { get; set; }
     }
 
-    public class PropertyFeatures
-    {
-        public Dictionary<string, string> PropertyFeature { get; set; }
-    }
 
     public class ListingFilter
     {
-        public FilterKey FilterName { get; set; }
+        public String FilterName { get; set; }
         public Dictionary<string, string> FilterValue { get; set; }
     }
 
-    public enum FilterKey 
+    public class SearchModel
     {
-        Price,
-        NumberOfBedRooms,
-        NumberOfBathRooms
+        public string SearchTerm { get; set; }
+        public List<ListingFilter> Filters { get; set; }
     }
+
+
 
 
 }
