@@ -30,7 +30,7 @@ namespace RealStateAPI.Models
     public enum PropertyType
     {
         Comercial,
-        resedential
+        Residential
     }
     public class Pictures
     {
@@ -65,7 +65,17 @@ namespace RealStateAPI.Models
     public class SearchModel
     {
         public string SearchTerm { get; set; }
+        public string PropertyType { get; set; }
         public List<ListingFilter> Filters { get; set; }
+    }
+
+    public class ListingAttachmentModel
+    {
+        [BsonId]
+        [BsonRepresentation(MongoDB.Bson.BsonType.ObjectId)]
+        public string ListingId { get; set; }
+        public List<string> AttachmentPaths { get; set; }
+
     }
 
 

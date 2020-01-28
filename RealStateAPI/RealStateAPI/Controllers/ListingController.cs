@@ -17,9 +17,12 @@ namespace RealStateAPI.Controllers
     {
         private readonly ListingService _listingService;
 
-        public ListingController(ListingService listingService)
+        private readonly IS3Service _s3Service;
+
+        public ListingController(ListingService listingService, IS3Service s3Service)
         {
             this._listingService = listingService;
+            this._s3Service = s3Service;
         }
 
         [Route("{listingId:length(24)}")]
@@ -29,7 +32,8 @@ namespace RealStateAPI.Controllers
             var listing = await _listingService.GetByID(listingId);
             if (listing == null)
             {
-                return NotFound();
+                Response.StatusCode = 400;
+                return Content("Listing Not found");
             }
             else
             {
@@ -71,13 +75,13 @@ namespace RealStateAPI.Controllers
         public async Task<ActionResult<List<ListingModel>>> Search(SearchModel search)
         {
             var builder = Builders<ListingModel>.Filter;
-            FilterDefinition<ListingModel> Monogfilter = FilterDefinition<ListingModel>.Empty;
+            FilterDefinition<ListingModel> Mongofilter = FilterDefinition<ListingModel>.Empty;
             foreach (var filter in search.Filters)
             {
 
                 switch (filter.FilterName)
                 {
-                    case "Price" :
+                    case "Price":
 
                         foreach (var item in filter.FilterValue)
                         {
@@ -85,11 +89,11 @@ namespace RealStateAPI.Controllers
                             if (item.Key.Equals("gt"))
                             {
 
-                                Monogfilter &= builder.Gt(ListingModel => ListingModel.Price, qty);
+                                Mongofilter &= builder.Gt(ListingModel => ListingModel.Price, qty);
                             }
                             if (item.Key.Equals("lt"))
                             {
-                                Monogfilter &= builder.Lt(ListingModel => ListingModel.Price, qty);
+                                Mongofilter &= builder.Lt(ListingModel => ListingModel.Price, qty);
                             }
                         }
                         break;
@@ -99,7 +103,7 @@ namespace RealStateAPI.Controllers
                         if (filter.FilterValue.TryGetValue("eq", out var numofrooms))
                         {
 
-                            Monogfilter &= builder.Eq(ListingModel => ListingModel.BedProperties.NumberOfRooms, Convert.ToInt32(numofrooms));
+                            Mongofilter &= builder.Eq(ListingModel => ListingModel.BedProperties.NumberOfRooms, Convert.ToInt32(numofrooms));
                             break;
                         }
                         foreach (var item in filter.FilterValue)
@@ -110,11 +114,11 @@ namespace RealStateAPI.Controllers
                             if (item.Key.Equals("gt"))
                             {
 
-                                Monogfilter &= builder.Gt(ListingModel => ListingModel.BedProperties.NumberOfRooms, qty);
+                                Mongofilter &= builder.Gt(ListingModel => ListingModel.BedProperties.NumberOfRooms, qty);
                             }
                             if (item.Key.Equals("lt"))
                             {
-                                Monogfilter &= builder.Lt(ListingModel => ListingModel.BedProperties.NumberOfRooms, qty);
+                                Mongofilter &= builder.Lt(ListingModel => ListingModel.BedProperties.NumberOfRooms, qty);
                             }
 
                         }
@@ -124,7 +128,7 @@ namespace RealStateAPI.Controllers
                         if (filter.FilterValue.TryGetValue("eq", out var numofBathrooms))
                         {
 
-                            Monogfilter &= builder.Eq(ListingModel => ListingModel.BathProperties.NumberOfRooms, Convert.ToInt32(numofBathrooms));
+                            Mongofilter &= builder.Eq(ListingModel => ListingModel.BathProperties.NumberOfRooms, Convert.ToInt32(numofBathrooms));
                             break;
                         }
                         foreach (var item in filter.FilterValue)
@@ -135,11 +139,11 @@ namespace RealStateAPI.Controllers
                             if (item.Key.Equals("gt"))
                             {
 
-                                Monogfilter &= builder.Gt(ListingModel => ListingModel.BathProperties.NumberOfRooms, qty);
+                                Mongofilter &= builder.Gt(ListingModel => ListingModel.BathProperties.NumberOfRooms, qty);
                             }
                             if (item.Key.Equals("lt"))
                             {
-                                Monogfilter &= builder.Lt(ListingModel => ListingModel.BathProperties.NumberOfRooms, qty);
+                                Mongofilter &= builder.Lt(ListingModel => ListingModel.BathProperties.NumberOfRooms, qty);
                             }
                         }
                         break;
@@ -148,13 +152,18 @@ namespace RealStateAPI.Controllers
                         return Content("Please select the correct Filter");
                 }
             }
-            if(!string.IsNullOrEmpty(search.SearchTerm))
+            if (!string.IsNullOrEmpty(search.SearchTerm))
             {
-                Monogfilter &= builder.Or(builder.Regex(ListingModel => ListingModel.ListingID, new BsonRegularExpression(search.SearchTerm, "i")), 
+                Mongofilter &= builder.Or(builder.Regex(ListingModel => ListingModel.ListingID, new BsonRegularExpression(search.SearchTerm, "i")),
                     builder.Regex(ListingModel => ListingModel.Location.Address, new BsonRegularExpression(search.SearchTerm, "i")),
                     builder.Regex(ListingModel => ListingModel.Description, new BsonRegularExpression(search.SearchTerm, "i")));
             }
-            var listing = await _listingService.Search(Monogfilter);
+            if (!string.IsNullOrEmpty(search.PropertyType))
+            {
+                PropertyType propertyType = (PropertyType)Enum.Parse(typeof(PropertyType), search.PropertyType);
+                Mongofilter &= builder.Eq(ListingModel => ListingModel.PropertyType, propertyType);
+            }
+            var listing = await _listingService.Search(Mongofilter);
             if (listing.Count == 0)
             {
                 Response.StatusCode = 200;
@@ -162,6 +171,62 @@ namespace RealStateAPI.Controllers
             }
             Response.StatusCode = 200;
             return listing;
+        }
+        [Route("Attachments")]
+        public async Task<IActionResult> AddAttachments(ListingAttachmentModel Attachments)
+        {
+            List<Pictures> picturesToAdd = new List<Pictures>();
+            ListingModel Listings = new ListingModel();
+            if (!string.IsNullOrEmpty(Attachments.ListingId))
+            {
+                Listings = await _listingService.GetByID(Attachments.ListingId);
+                if (Listings == null)
+                {
+                    Response.StatusCode = 400;
+                    return Content("Listing Not found");
+                }
+                else
+                {
+                    picturesToAdd = Listings.Pictures;
+                    foreach (string attachmentPath in Attachments.AttachmentPaths)
+                    {
+                        var pictureUrl = Guid.NewGuid().ToString();
+                        picturesToAdd.Add(new Pictures { TypeID = PictureType.Featured, url = pictureUrl });
+                        try
+                        {
+                            await _s3Service.uploadFile(pictureUrl, attachmentPath);
+                        }
+                        catch (Exception)
+                        {
+
+                            Response.StatusCode = 400;
+                            return Content("We Could not upload all the pictures please try again");
+                        }
+
+                    }
+                    UpdateDefinition<ListingModel> update = Builders<ListingModel>.Update.Set(l => l.Pictures, picturesToAdd);
+                    FilterDefinition<ListingModel> Mongofilter = Builders<ListingModel>.Filter.Eq(l => l.Id, Attachments.ListingId);
+                    try
+                    {
+                        await _listingService.UpdateListing(Mongofilter, update);
+                    }
+                    catch (Exception)
+                    {
+
+                        Response.StatusCode = 400;
+                        return Content("We Could not upload all the pictures please try again");
+                    }
+                 
+                    Response.StatusCode = 200;
+                    return Content("All the attachmens Were Added");
+                }
+            }
+            else
+            {
+                Response.StatusCode = 400;
+                return Content("Please send in the listing ID");
+            }
+
         }
     }
 }

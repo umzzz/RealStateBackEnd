@@ -46,5 +46,23 @@ namespace RealStateAPI.Service
             var listings = await  _listing.FindAsync(filter);
             return await listings.ToListAsync();
         }
+
+        public async Task<bool> UpdateListing(FilterDefinition<ListingModel> filter,  UpdateDefinition<ListingModel> Pictures )
+        {
+            if(filter != null && Pictures != null)
+            {
+                UpdateOptions options = new UpdateOptions
+                {
+                    IsUpsert = true
+                };
+                var result = await _listing.UpdateOneAsync(filter, Pictures, options);
+
+                return result.IsAcknowledged;
+            }
+            else
+            {
+                return false;
+            }
+        }
     }
 }

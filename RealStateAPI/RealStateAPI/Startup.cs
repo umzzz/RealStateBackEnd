@@ -4,10 +4,12 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Amazon.S3;
 using AspNetCore.Identity.Mongo;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
@@ -58,6 +60,7 @@ namespace RealStateAPI
              {
                  mongo.ConnectionString = ConnectionString;
              }
+
          );
 
             //using DI to get the connection string and regestering a singelton for the life of the application
@@ -87,6 +90,13 @@ namespace RealStateAPI
                        };
             });
 
+            services.AddDefaultAWSOptions(Configuration.GetAWSOptions());
+
+            services.Configure<FormOptions>(x =>
+            {
+                x.ValueLengthLimit = int.MaxValue;
+                x.MultipartBodyLengthLimit = int.MaxValue; // In case of multipart
+            });
 
             services.Configure<UserDataBaseSettings>(Configuration.GetSection(nameof(UserDataBaseSettings)));
 
@@ -101,6 +111,9 @@ namespace RealStateAPI
             services.AddSingleton<IListingInquiryDataBaseSetting>(sp => sp.GetRequiredService<IOptions<ListingInquiryDataBaseSetting>>().Value);
 
             services.AddSingleton<ListingService>();
+
+            services.AddSingleton<IS3Service, S3Service>();
+            services.AddAWSService<IAmazonS3>();
 
             services.AddControllers();
         }

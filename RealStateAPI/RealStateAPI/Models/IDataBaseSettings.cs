@@ -18,4 +18,5 @@
         string DatabaseName { get; set; }
         string ListingInquiryCollectionName { get; set; }
     }
+
 }
